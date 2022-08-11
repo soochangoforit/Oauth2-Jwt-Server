@@ -1,0 +1,14 @@
+package server.oauth2jwt.dto.request;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+
+@Getter
+@NoArgsConstructor
+public class LoginDto {
+
+    private String username;
+    private String password;
+
+}
