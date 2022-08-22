@@ -12,6 +12,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import server.oauth2jwt.filter.CustomAuthenticationFilter;
 import server.oauth2jwt.filter.CustomAuthorizationFilter;
 import server.oauth2jwt.manager.CustomAuthenticationManager;
@@ -45,7 +46,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
 
-                .authorizeRequests().antMatchers("/api/login","/signUp", "/api/token/refresh").permitAll()
+                .authorizeRequests().antMatchers("/api/login/**","/signUp/**","/user","/", "/api/token/refresh/**").permitAll()
                 .antMatchers(GET, "/api/users/**").hasAnyAuthority("ROLE_USER")
                 .antMatchers(POST, "/api/user/save/**", "/api/writeTest").hasAnyAuthority("ROLE_USER")
                 .anyRequest().authenticated()
@@ -54,7 +55,7 @@ public class SecurityConfig {
                 // 추가 필요
                 .and()
                 .addFilter(customAuthenticationFilter) // 인증 filter
-                .addFilter(new CustomAuthorizationFilter(customAuthenticationManager))   // 인가 filter
+                .addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class)   // 인가 filter
 
                 .oauth2Login()
                 .successHandler(successHandler)

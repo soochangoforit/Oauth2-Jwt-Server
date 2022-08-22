@@ -70,6 +70,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
             AppUser appUser = AppUser.builder()
                     .name(appUserAttributes.get("name").toString())
                     .username(loginId)
+                    .picture(appUserAttributes.get("picture").toString())
                     .password(bCryptPasswordEncoder.encode(loginId))
                     .build();
 

@@ -31,4 +31,16 @@ public class LoginController {
 
         return new ResponseEntity<>(signUpDto.getUsername(), org.springframework.http.HttpStatus.OK);
     }
+
+
+    @GetMapping("/user")
+    @ResponseBody
+    public void findwho(@AuthenticationPrincipal Long id){
+
+        Long who = id;
+
+        String a = "aa";
+
+    }
+
 }

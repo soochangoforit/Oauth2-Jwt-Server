@@ -5,11 +5,13 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,11 +28,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-public class CustomAuthorizationFilter extends BasicAuthenticationFilter {
-
-    public CustomAuthorizationFilter(AuthenticationManager authenticationManager) {
-        super(authenticationManager);
-    }
+@Slf4j
+public class CustomAuthorizationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -38,30 +37,32 @@ public class CustomAuthorizationFilter extends BasicAuthenticationFilter {
 
         // refresh 요청 및 일반 권한이 필요없는 요청은 해당 필터를 거치지 않는다.
         // 대신 config에 해당 url에 대해서는 반드시 permitAll()이 이루어져야 한다.
-        if(request.getRequestURI().equals("/api/token/refresh")){
+        if(request.getServletPath().equals("/signUp") || request.getServletPath().equals("/api/login")|| request.getServletPath().equals("/api/token/refresh")) {
+            log.info("request Servlet path : {}", request.getServletPath());
             filterChain.doFilter(request, response);
-        }
-
-        String authorizationHeader = request.getHeader(AUTHORIZATION);
-
-        if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
-            try{
-                verifyTokenAndSetSecuritySession(authorizationHeader);
-
-                filterChain.doFilter(request, response);
-            }catch(Exception exception){
-                // access token verify 실패시 에러 응답 , 해킹 당한 access token이거나, access token의 유효기간이 지난 경우
-                response.setHeader("error", exception.getMessage());
-                response.setStatus(FORBIDDEN.value());
-
-                Map<String , String> error = new HashMap<>();
-                error.put("error_message" , exception.getMessage());
-                response.setContentType(APPLICATION_JSON_VALUE);
-                new ObjectMapper().writeValue(response.getOutputStream(), error);
-            }
         }else{
-            filterChain.doFilter(request, response);
+            String authorizationHeader = request.getHeader(AUTHORIZATION);
+
+
+            if(authorizationHeader != null && authorizationHeader.startsWith("Bearer ")){
+                try{
+                    verifyTokenAndSetSecuritySession(authorizationHeader);
+
+                    filterChain.doFilter(request, response);
+                }catch(Exception exception){
+                    // access token verify 실패시 에러 응답 , 해킹 당한 access token이거나, access token의 유효기간이 지난 경우
+                    response.setHeader("error", exception.getMessage());
+                    response.setStatus(FORBIDDEN.value());
+
+                    Map<String , String> error = new HashMap<>();
+                    error.put("error_message" , exception.getMessage());
+                    response.setContentType(APPLICATION_JSON_VALUE);
+                    new ObjectMapper().writeValue(response.getOutputStream(), error);
+                }
+            }
         }
+
+
     }
 
     private void verifyTokenAndSetSecuritySession(String authorizationHeader) {

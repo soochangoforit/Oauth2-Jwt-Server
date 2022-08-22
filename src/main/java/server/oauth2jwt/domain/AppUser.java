@@ -24,6 +24,8 @@ public class AppUser {
 
     private String password;
 
+    private String picture;
+
     @OneToMany(mappedBy = "appUser", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Collection<AppUserWithRole> appUserWithRoles = new ArrayList<>();
 
@@ -31,10 +33,11 @@ public class AppUser {
     }
 
     @Builder
-    public AppUser( String name, String username, String password, Collection<AppUserWithRole> appUserWithRoles) {
+    public AppUser( String name, String username, String password,String picture , Collection<AppUserWithRole> appUserWithRoles) {
         this.name = name;
         this.username = username;
         this.password = password;
+        this.picture = picture;
         this.appUserWithRoles = appUserWithRoles;
     }
 
